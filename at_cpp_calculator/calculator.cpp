@@ -14,7 +14,83 @@ Calculator::~Calculator()
 {
 }
 
-double Calculator::parseFloat(string_ref &ref)
+double Calculator::parseExpr(string_ref &ref)
+{
+	return parseExprSum(ref);
+}
+
+double Calculator::parseExprSum(boost::string_ref &ref)
+{
+	double value = parseExprMul(ref);
+	while (true)
+	{
+		skipSpaces(ref);
+		if (!ref.empty() && ref[0] == '+')
+		{
+			ref.remove_prefix(1);
+			value += parseExprMul(ref);
+		}
+		else if (!ref.empty() && ref[0] == '-')
+		{
+			ref.remove_prefix(1);
+			value -= parseExprMul(ref);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return value;
+}
+
+double Calculator::parseExprMul(boost::string_ref &ref)
+{
+	double value = parseUnary(ref);
+	while (true)
+	{
+		skipSpaces(ref);
+		if (!ref.empty() && ref[0] == '*')
+		{
+			ref.remove_prefix(1);
+			value *= parseDouble(ref);
+		}
+		else if (!ref.empty() && ref[0] == '/')
+		{
+			ref.remove_prefix(1);
+			value /= parseDouble(ref);
+		}
+		else
+		{
+			break;
+		}
+	}
+
+	return value;
+}
+
+double Calculator::parseUnary(string_ref &ref)
+{
+	skipSpaces(ref);
+	int coefficient = 1;
+	if (ref[0] == '-')
+	{
+		ref.remove_prefix(1);
+		coefficient = -1;
+	}
+	else if (ref[0] == '+')
+	{
+		ref.remove_prefix(1);
+	}
+	
+	if (ref.empty())
+	{
+		return numeric_limits<double>::quiet_NaN();
+	}
+	return coefficient * parseDouble(ref);
+}
+
+double Calculator::parseDouble(string_ref &ref)
 {
 	skipSpaces(ref);
 	double value = 0;
@@ -23,76 +99,29 @@ double Calculator::parseFloat(string_ref &ref)
 	{
 		parsedAny = true;
 		const int digit = ref[0] - '0';
-		value = value * 10.0f + double(digit);
+		value = value * 10.0 + double(digit);
 		ref.remove_prefix(1);
 	}
 	if (!parsedAny)
 	{
 		return numeric_limits<double>::quiet_NaN();
 	}
-	
+
 	if (ref.empty() || (ref[0] != '.'))
 	{
 		return value;
 	}
 	ref.remove_prefix(1);
-	double factor = 1.f;
+	double factor = 1;
+	if (ref.empty()) {
+		return numeric_limits<double>::quiet_NaN();
+	}
 	while (!ref.empty() && isdigit(ref[0]))
 	{
 		const int digit = ref[0] - '0';
-		factor *= 0.1f;
+		factor *= 0.1;
 		value += factor * double(digit);
 		ref.remove_prefix(1);
-	}
-
-	return value;
-}
-
-double Calculator::parseExprMul(boost::string_ref &ref)
-{
-	double value = parseFloat(ref);
-	while (true)
-	{
-		skipSpaces(ref);
-		if (!ref.empty() && ref[0] == '*')
-		{
-			ref.remove_prefix(1);
-			value *= parseFloat(ref);
-		}
-		else if (!ref.empty() && ref[0] == '/')
-		{
-			ref.remove_prefix(1);
-			value /= parseFloat(ref);
-		}
-		else
-		{
-			break;
-		}
-	}
-
-	return value;
-}
-
-double Calculator::parseExprSum(boost::string_ref &ref)
-{
-	double value = parseFloat(ref);
-	while (true)
-	{
-		skipSpaces(ref);
-		if (!ref.empty() && ref[0] == '+')
-		{
-			ref.remove_prefix(1);
-			value += parseFloat(ref);
-		}
-		else if (!ref.empty() && ref[0] == '-')
-		{
-			ref.remove_prefix(1);
-			value -= parseFloat(ref);
-		}
-		else
-		{
-			break;
-		}
 	}
 
 	return value;

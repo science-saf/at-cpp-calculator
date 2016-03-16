@@ -5,6 +5,8 @@ using namespace Calc;
 using namespace std;
 using string_ref = boost::string_ref;
 
+const double DISPLACEMENT = 0.0001;
+
 int _tmain(int argc, _TCHAR* argv[])
 {
 	return 0;
@@ -12,7 +14,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 BOOST_AUTO_TEST_SUITE(CalculatorTestSuite)
 
-BOOST_AUTO_TEST_CASE(TestParseInteger)
+BOOST_AUTO_TEST_CASE(TestParseUnsignedInt)
 {
 	Calculator c;
 	map<string_ref, double> testData({
@@ -24,11 +26,25 @@ BOOST_AUTO_TEST_CASE(TestParseInteger)
 	for (auto it : testData)
 	{
 		string_ref s = it.first;
-		BOOST_CHECK_EQUAL(it.second, c.parseFloat(s));
+		BOOST_CHECK_EQUAL(it.second, c.parseDouble(s));
 	}
 }
 
-BOOST_AUTO_TEST_CASE(TestParseFloat)
+BOOST_AUTO_TEST_CASE(TestParseSignedInt)
+{
+	Calculator c;
+	map<string_ref, double> testData({
+		{ string_ref("-0"), double(0) },
+		{ string_ref("-7"), double(-7) }
+	});
+	for (auto it : testData)
+	{
+		string_ref s = it.first;
+		BOOST_CHECK_EQUAL(it.second, c.parseUnary(s));
+	}
+}
+
+BOOST_AUTO_TEST_CASE(TestParseUnsignedFloat)
 {
 	Calculator c;
 	map<string_ref, double> testData({
@@ -41,7 +57,24 @@ BOOST_AUTO_TEST_CASE(TestParseFloat)
 	for (auto it : testData)
 	{
 		string_ref s = it.first;
-		BOOST_CHECK_CLOSE(it.second, c.parseFloat(s), 0.0001f);
+		BOOST_CHECK_CLOSE(it.second, c.parseDouble(s), DISPLACEMENT);
+	}
+}
+
+BOOST_AUTO_TEST_CASE(TestParseSignedFloat)
+{
+	Calculator c;
+	map<string_ref, double> testData({
+		{ string_ref("-7.3"), double(-7.3) },
+		{ string_ref("+000000000000000000.9"), double(0.9) },
+		{ string_ref("-11.0"), double(-11) },
+		{ string_ref("+123.00000000000000"), double(123) },
+		{ string_ref("-0.008"), double(-0.008) }
+	});
+	for (auto it : testData)
+	{
+		string_ref s = it.first;
+		BOOST_CHECK_CLOSE(it.second, c.parseUnary(s), DISPLACEMENT);
 	}
 }
 
@@ -60,26 +93,72 @@ BOOST_AUTO_TEST_CASE(TestParseExprSum)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(TestParseExprMul)
+{
+	Calculator c;
+	map<string_ref, double> testData({
+		{ string_ref("2*3"), double(6) },
+		{ string_ref("4/2"), double(2) },
+		{ string_ref("2*2*2"), double(8) },
+		{ string_ref("-4/2"), double(-2) },
+		{ string_ref("-4/2/2"), double(-1) },
+	});
+	for (auto it : testData)
+	{
+		string_ref s = it.first;
+		BOOST_CHECK_EQUAL(it.second, c.parseExprMul(s));
+	}
+}
+
+BOOST_AUTO_TEST_CASE(TestParseExpr)
+{
+	Calculator c;
+	map<string_ref, double> testData({
+		{ string_ref("2*3"), double(6) },
+		{ string_ref("4/2"), double(2) },
+		{ string_ref("2+2*2"), double(6) },
+		{ string_ref("-4/2"), double(-2) },
+	});
+	for (auto it : testData)
+	{
+		string_ref s = it.first;
+		BOOST_CHECK_EQUAL(it.second, c.parseExpr(s));
+	}
+}
+
 BOOST_AUTO_TEST_CASE(TestNan)
 {
 	Calculator c;
-	BOOST_ASSERT(isnan(c.parseFloat(string_ref(string("a")))));
-	BOOST_CHECK_EQUAL(54, c.parseFloat(string_ref(string("54a"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("a")))));
+	BOOST_CHECK_EQUAL(54, c.parseExpr(string_ref(string("54a"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("--1")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("- -1")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("++1")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("+ +1")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("*2")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("/2")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3-")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3+")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3*")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3/")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4.")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4/-2")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4/+2")))));
 }
 
 BOOST_AUTO_TEST_CASE(TestSkipSpaces)
 {
 	Calculator c;
 	map<string_ref, double> testData1({
-		{ string_ref("7"), double(7) },
-		{ string_ref("10"), double(10) },
-		{ string_ref("45646546456"), double(45646546456) },
+		{ string_ref("  7"), double(7) },
+		{ string_ref("10  "), double(10) },
+		{ string_ref("  45646546456  "), double(45646546456) },
 		{ string_ref("0"), double(0) }
 	});
 	for (auto it : testData1)
 	{
 		string_ref s = it.first;
-		BOOST_CHECK_EQUAL(it.second, c.parseFloat(s));
+		BOOST_CHECK_EQUAL(it.second, c.parseDouble(s));
 	}
 	map<string_ref, double> testData2({
 		{ string_ref("2   +		3"), double(5) },
