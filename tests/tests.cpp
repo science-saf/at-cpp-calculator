@@ -129,21 +129,21 @@ BOOST_AUTO_TEST_CASE(TestParseExpr)
 BOOST_AUTO_TEST_CASE(TestNan)
 {
 	Calculator c;
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("a")))));
-	BOOST_CHECK_EQUAL(54, c.parseExpr(string_ref(string("54a"))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("--1")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("- -1")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("++1")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("+ +1")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("*2")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("/2")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3-")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3+")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3*")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("3/")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4.")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4/-2")))));
-	BOOST_ASSERT(isnan(c.parseExpr(string_ref(string("4/+2")))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("a"))));
+	BOOST_CHECK_EQUAL(54, c.parseExpr(string_ref("54a")));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("--1"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("- -1"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("++1"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("+ +1"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("*2"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("/2"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("3-"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("3+"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("3*"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("3/"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("4."))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("4/-2"))));
+	BOOST_ASSERT(isnan(c.parseExpr(string_ref("4/+2"))));
 }
 
 BOOST_AUTO_TEST_CASE(TestSkipSpaces)

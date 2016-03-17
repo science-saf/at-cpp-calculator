@@ -12,3 +12,6 @@
 
 #include <boost/utility/string_ref.hpp>
 #include <cctype>
+#include <map>
+#include <iostream>
+#include <sstream>

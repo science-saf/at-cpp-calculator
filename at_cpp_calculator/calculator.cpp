@@ -1,9 +1,10 @@
 #include "stdafx.h"
 #include "calculator.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace Calc;
 using namespace std;
-using namespace boost;
+using string_ref = boost::string_ref;
 
 Calculator::Calculator()
 {
@@ -16,10 +17,11 @@ Calculator::~Calculator()
 
 double Calculator::parseExpr(string_ref &ref)
 {
+	m_isFirstWriteToLog = true;
 	return parseExprSum(ref);
 }
 
-double Calculator::parseExprSum(boost::string_ref &ref)
+double Calculator::parseExprSum(string_ref &ref)
 {
 	double value = parseExprMul(ref);
 	while (true)
@@ -44,7 +46,7 @@ double Calculator::parseExprSum(boost::string_ref &ref)
 	return value;
 }
 
-double Calculator::parseExprMul(boost::string_ref &ref)
+double Calculator::parseExprMul(string_ref &ref)
 {
 	double value = parseUnary(ref);
 	while (true)
@@ -127,10 +129,38 @@ double Calculator::parseDouble(string_ref &ref)
 	return value;
 }
 
-void Calculator::skipSpaces(boost::string_ref &ref)
+void Calculator::setDebugStream(ostream& outStream)
+{
+	m_debugStream = &outStream;
+}
+
+void Calculator::skipSpaces(string_ref &ref)
 {
 	size_t i = 0;
 	while (i < ref.size() && isspace(ref[i]))
 		++i;
 	ref.remove_prefix(i);
+}
+
+void Calc::Calculator::log(char ch)
+{
+	log(move(string(1, ch)));
+}
+
+void Calc::Calculator::log(double d)
+{
+	log(boost::lexical_cast<string>(d));
+}
+
+void Calc::Calculator::log(string str)
+{
+	if (m_debugStream != nullptr)
+	{
+		if (!m_isFirstWriteToLog)
+		{
+			*m_debugStream << " ";
+		}
+		*m_debugStream << str;
+		m_isFirstWriteToLog = false;
+	}
 }
