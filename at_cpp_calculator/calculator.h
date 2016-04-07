@@ -21,6 +21,8 @@ private:
 	void log(char ch);
 	void log(double d);
 	void log(std::string str);
+	void manageOperatorsStack(char newOperator);
+	bool isPriorityGreater(char leftOp, char rightOp);
 	std::ostream* m_debugStream = nullptr;
 	bool m_isAddSpaceToLog = true;
 	std::stack<char> m_operatorsStack;

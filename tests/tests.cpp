@@ -7,11 +7,6 @@ using string_ref = boost::string_ref;
 
 const double DISPLACEMENT = 0.0001;
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-	return 0;
-}
-
 BOOST_AUTO_TEST_SUITE(CalculatorTestSuite)
 
 BOOST_AUTO_TEST_CASE(TestParseUnsignedInt)

@@ -38,39 +38,13 @@ double Calculator::parseExprSum(string_ref &ref)
 		skipSpaces(ref);
 		if (!ref.empty() && ref[0] == '+')
 		{
-			if (m_operatorsStack.size() > 0)
-			{
-				while ((m_operatorsStack.size() > 0)
-					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/') || (m_operatorsStack.top() == '-')))
-				{
-					log(m_operatorsStack.top());
-					m_operatorsStack.pop();
-				}
-				m_operatorsStack.push('+');
-			}
-			else
-			{
-				m_operatorsStack.push('+');
-			}
+			manageOperatorsStack('+');
 			ref.remove_prefix(1);
 			value += parseExprMul(ref);
 		}
 		else if (!ref.empty() && ref[0] == '-')
 		{
-			if (m_operatorsStack.size() > 0)
-			{
-				while ((m_operatorsStack.size() > 0)
-					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/') || (m_operatorsStack.top() == '+')))
-				{
-					log(m_operatorsStack.top());
-					m_operatorsStack.pop();
-				}
-				m_operatorsStack.push('-');
-			}
-			else
-			{
-				m_operatorsStack.push('-');
-			}
+			manageOperatorsStack('-');
 			ref.remove_prefix(1);
 			value -= parseExprMul(ref);
 		}
@@ -91,39 +65,13 @@ double Calculator::parseExprMul(string_ref &ref)
 		skipSpaces(ref);
 		if (!ref.empty() && ref[0] == '*')
 		{
-			if (m_operatorsStack.size() > 0)
-			{
-				while ((m_operatorsStack.size() > 0)
-					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/')))
-				{
-					log(m_operatorsStack.top());
-					m_operatorsStack.pop();
-				}
-				m_operatorsStack.push('*');
-			}
-			else
-			{
-				m_operatorsStack.push('*');
-			}
+			manageOperatorsStack('*');
 			ref.remove_prefix(1);
 			value *= parseDouble(ref);
 		}
 		else if (!ref.empty() && ref[0] == '/')
 		{
-			if (m_operatorsStack.size() > 0)
-			{
-				while ((m_operatorsStack.size() > 0)
-					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/')))
-				{
-					log(m_operatorsStack.top());
-					m_operatorsStack.pop();
-				}
-				m_operatorsStack.push('/');
-			}
-			else
-			{
-				m_operatorsStack.push('/');
-			}
+			manageOperatorsStack('/');
 			ref.remove_prefix(1);
 			value /= parseDouble(ref);
 		}
@@ -213,6 +161,38 @@ void Calculator::skipSpaces(string_ref &ref)
 		++i;
 	}
 	ref.remove_prefix(i);
+}
+
+void Calculator::manageOperatorsStack(char newOperator)
+{
+	if (m_operatorsStack.size() > 0)
+	{
+		while ((m_operatorsStack.size() > 0) && (!isPriorityGreater(newOperator, m_operatorsStack.top())))
+		{
+			log(m_operatorsStack.top());
+			m_operatorsStack.pop();
+		}
+		m_operatorsStack.push(newOperator);
+	}
+	else
+	{
+		m_operatorsStack.push(newOperator);
+	}
+}
+
+bool Calculator::isPriorityGreater(char leftOp, char rightOp)
+{
+	switch (leftOp)
+	{
+	case '+':
+	case '-':
+		return false;
+	case '*':
+	case '/':
+		return ((rightOp == '+') || (rightOp == '-'));
+	default:
+		throw invalid_argument("Unknown operator");
+	}
 }
 
 void Calc::Calculator::log(char ch)
