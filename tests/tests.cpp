@@ -172,5 +172,27 @@ BOOST_AUTO_TEST_CASE(TestSkipSpaces)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(TestPolishNotation)
+{
+	map<string_ref, string> testData({
+		{ string_ref("1"), string("1") },
+		{ string_ref("1+2"), string("1 2 +") },
+		{ string_ref("1+2*3"), string("1 2 3 * +") },
+		{ string_ref("1*2+3*4"), string("1 2 * 3 4 * +") },
+		{ string_ref("-1+2"), string("-1 2 +") },
+		{ string_ref("-1*2+3*4"), string("-1 2 * 3 4 * +") },
+		{ string_ref("+1*2+3*4"), string("1 2 * 3 4 * +") },
+	});
+	for (auto it : testData)
+	{
+		Calculator c;
+		ostringstream debugStream;
+		c.setDebugStream(debugStream);
+		string_ref str = it.first;
+		c.parseExpr(str);
+		BOOST_CHECK_EQUAL(debugStream.str(), it.second);
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 

@@ -17,3 +17,4 @@
 #include <boost/utility/string_ref.hpp>
 #include <string>
 #include <map>
+#include <boost/lexical_cast.hpp>

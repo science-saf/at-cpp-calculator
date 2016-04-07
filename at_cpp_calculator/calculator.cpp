@@ -1,6 +1,5 @@
 #include "stdafx.h"
 #include "calculator.h"
-#include <boost/lexical_cast.hpp>
 
 using namespace Calc;
 using namespace std;
@@ -17,8 +16,18 @@ Calculator::~Calculator()
 
 double Calculator::parseExpr(string_ref &ref)
 {
-	m_isFirstWriteToLog = true;
-	return parseExprSum(ref);
+	m_isAddSpaceToLog = false;
+	double result = parseExprSum(ref);
+	if (m_debugStream != nullptr)
+	{
+		while (m_operatorsStack.size() > 0)
+		{
+			log(m_operatorsStack.top());
+			m_operatorsStack.pop();
+		}
+	}
+
+	return result;
 }
 
 double Calculator::parseExprSum(string_ref &ref)
@@ -29,11 +38,39 @@ double Calculator::parseExprSum(string_ref &ref)
 		skipSpaces(ref);
 		if (!ref.empty() && ref[0] == '+')
 		{
+			if (m_operatorsStack.size() > 0)
+			{
+				while ((m_operatorsStack.size() > 0)
+					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/') || (m_operatorsStack.top() == '-')))
+				{
+					log(m_operatorsStack.top());
+					m_operatorsStack.pop();
+				}
+				m_operatorsStack.push('+');
+			}
+			else
+			{
+				m_operatorsStack.push('+');
+			}
 			ref.remove_prefix(1);
 			value += parseExprMul(ref);
 		}
 		else if (!ref.empty() && ref[0] == '-')
 		{
+			if (m_operatorsStack.size() > 0)
+			{
+				while ((m_operatorsStack.size() > 0)
+					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/') || (m_operatorsStack.top() == '+')))
+				{
+					log(m_operatorsStack.top());
+					m_operatorsStack.pop();
+				}
+				m_operatorsStack.push('-');
+			}
+			else
+			{
+				m_operatorsStack.push('-');
+			}
 			ref.remove_prefix(1);
 			value -= parseExprMul(ref);
 		}
@@ -54,11 +91,39 @@ double Calculator::parseExprMul(string_ref &ref)
 		skipSpaces(ref);
 		if (!ref.empty() && ref[0] == '*')
 		{
+			if (m_operatorsStack.size() > 0)
+			{
+				while ((m_operatorsStack.size() > 0)
+					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/')))
+				{
+					log(m_operatorsStack.top());
+					m_operatorsStack.pop();
+				}
+				m_operatorsStack.push('*');
+			}
+			else
+			{
+				m_operatorsStack.push('*');
+			}
 			ref.remove_prefix(1);
 			value *= parseDouble(ref);
 		}
 		else if (!ref.empty() && ref[0] == '/')
 		{
+			if (m_operatorsStack.size() > 0)
+			{
+				while ((m_operatorsStack.size() > 0)
+					&& ((m_operatorsStack.top() == '*') || (m_operatorsStack.top() == '/')))
+				{
+					log(m_operatorsStack.top());
+					m_operatorsStack.pop();
+				}
+				m_operatorsStack.push('/');
+			}
+			else
+			{
+				m_operatorsStack.push('/');
+			}
 			ref.remove_prefix(1);
 			value /= parseDouble(ref);
 		}
@@ -79,6 +144,8 @@ double Calculator::parseUnary(string_ref &ref)
 	{
 		ref.remove_prefix(1);
 		coefficient = -1;
+		log('-');
+		m_isAddSpaceToLog = false;
 	}
 	else if (ref[0] == '+')
 	{
@@ -89,7 +156,9 @@ double Calculator::parseUnary(string_ref &ref)
 	{
 		return numeric_limits<double>::quiet_NaN();
 	}
-	return coefficient * parseDouble(ref);
+	double value = coefficient * parseDouble(ref);
+
+	return value;
 }
 
 double Calculator::parseDouble(string_ref &ref)
@@ -111,6 +180,7 @@ double Calculator::parseDouble(string_ref &ref)
 
 	if (ref.empty() || (ref[0] != '.'))
 	{
+		log(value);
 		return value;
 	}
 	ref.remove_prefix(1);
@@ -125,6 +195,7 @@ double Calculator::parseDouble(string_ref &ref)
 		value += factor * double(digit);
 		ref.remove_prefix(1);
 	}
+	log(value);
 
 	return value;
 }
@@ -138,7 +209,9 @@ void Calculator::skipSpaces(string_ref &ref)
 {
 	size_t i = 0;
 	while (i < ref.size() && isspace(ref[i]))
+	{
 		++i;
+	}
 	ref.remove_prefix(i);
 }
 
@@ -156,11 +229,11 @@ void Calc::Calculator::log(string str)
 {
 	if (m_debugStream != nullptr)
 	{
-		if (!m_isFirstWriteToLog)
+		if (m_isAddSpaceToLog)
 		{
 			*m_debugStream << " ";
 		}
 		*m_debugStream << str;
-		m_isFirstWriteToLog = false;
+		m_isAddSpaceToLog = true;
 	}
 }
